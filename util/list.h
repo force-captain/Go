@@ -18,6 +18,6 @@ int list_append(List* list, const void* elem);
 void* list_get(const List* list, size_t index);
 int list_contains_cmp(const List* list, const void* elem, comparator cmp);
 int list_contains(const List* list, const void* elem);
-void list_free(List* list);
+void list_free(List* list, void (*free_fn)(void*));
 
 #endif

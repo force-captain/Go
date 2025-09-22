@@ -1,25 +1,87 @@
 #include <stdio.h>
 #include "list.h"
+#include "groups.h"
 #include "board.h"
 #include "states.h"
 
-Board game_board;
+typedef struct Board {
+	uint8_t size;
+	Tile data[MAX_SIZE][MAX_SIZE];
+	List* groups;
+} Board;
 
-void init_board(int size) {
-	game_board.size = size;
+typedef struct Tile {
+	Colour colour;
+	Group* group;
+} Tile;
+
+
+Board* board_init(uint8_t size) {
+	Board* b = malloc(sizeof(Board));
+	if (!b) {
+		return NULL;
+	}
+	b->size = size;
+
 	for(int i = 0; i < size; i++) {
 		for(int j = 0; j < size; j++) {
-			game_board.data[i][j] = NONE;
+			b->data[i][j] = (Tile){ .colour = NONE, .group = NULL };
 		}
+	}
+	b->groups = list_init(sizeof(Group*), 4);
+
+	return b;
+}
+
+Colour board_get_colour(Board* b, Point pt) {
+	return b->data[pt.x][pt.y].colour;
+}
+
+void board_append_group(Board* b, Group* g) {
+	list_append(b->groups, g);
+}
+
+Tile* board_get_tile(Board* b, Point pt) {
+	return &b->data[pt.x][pt.y];
+}
+
+Group* tile_get_group(Tile* t) {
+	return t->group;
+}
+
+Colour tile_get_colour(Tile* t) {
+	return t->colour;
+}
+
+void tile_set_group(Tile* t, Group* g) {
+	if (g == NULL) {
+		t->group = NULL;
+		t->colour = NONE;
+	} else {
+		t->group = g;
+		t->colour = g->colour;
 	}
 }
 
-int is_valid_point(Point pt) {
-	int size = game_board.size;
-	if (pt.x >= size || pt.x < 0 || pt.y >= size || pt.y < 0)
-		return 0;
-	else
-		return 1;
+void board_free(Board* board) {
+	if (!board) {
+		return;
+	}
+	list_free(board->groups, group_free_elem);
+	free(board);
+}
+
+
+int board_set_tile(Board* b, Colour colour, Point pt) {
+	if (point_is_in_bounds(b->size, pt)) {
+		b->data[pt.x][pt.y].colour = colour;
+		return MOVE_OK;
+	}
+	return MOVE_INVALID;
+}
+
+bool point_is_in_bounds(size_t size, Point pt) {
+	return pt.x < size && pt.y < size;
 }
 
 void get_neighbours(Point* neighbours, Point pt) {
@@ -29,18 +91,55 @@ void get_neighbours(Point* neighbours, Point pt) {
 	neighbours[3] = (Point){ pt.x, pt.y + 1 };
 }
 
-// 0 = Success, 1 = Failure
-int place_tile(Tile tile, Point pt) {
-	if (is_valid_point(pt) == 0)
-		return 1;
-	Point neighbours[4];
-	get_neighbours(neighbours, pt);
-	
-	for(int i = 0; i < 4; i++) {
-		
+// 0 = Success, 1+ = Failure
+int place_tile(Board* board, Colour colour, Point pt) {
+	if (point_is_in_bounds(board->size, pt) == 0 || board_get_colour(board, pt) != NONE) {
+		return MOVE_INVALID; // Invalid move
 	}
 
-	Tile prev = game_board.data[pt.x][pt.y];
-	game_board.data[pt.x][pt.y] = tile;
-	return 0;
+	List* captured_groups = list_init(sizeof(Group*), 2);
+
+	Point neighbours[4];
+	get_neighbours(neighbours, pt);
+	for(size_t i = 0; i < 4; i++) {
+		Point n = neighbours[i];
+		if (!point_is_in_bounds(board->size, n)) {
+			continue;
+		}
+		Tile* t = board_get_tile(board, n);
+		if (t->colour != NONE) {
+			Group* g = t->group;
+			if (t->colour != colour) {
+				if (group_get_liberty_count(g) == 1) {
+					group_mark_for_capture(g, true);	
+					list_append(captured_groups, g);
+				}
+			}
+			else {
+				if (group_get_liberty_count(g) == 1) {
+					list_free(captured_groups, NULL);
+					return MOVE_SUICIDE; // Suicide rule
+				}
+			}
+		}
+	}
+	int result = board_set_tile(board, colour, pt);
+	// Ko check
+	if (check_ko(board)) {
+		for (size_t i = 0; i < captured_groups->size; i++) {
+			Group* g = *(Group**)list_get(captured_groups, i);
+			group_mark_for_capture(g, false);
+		}
+		list_free(captured_groups, NULL);
+		board_set_tile(board, NONE, pt);
+		return MOVE_KO; // Ko/Superko rule
+	}
+	list_free(captured_groups, NULL);
+	calculate_board_groups(board);
+	return result;
+}
+
+void board_init_groups(Board* b) {
+	list_free(b->groups, group_free_elem);
+	b->groups = list_init(sizeof(Group*), 4);
 }

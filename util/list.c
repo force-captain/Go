@@ -1,13 +1,9 @@
 #include "list.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define RED "\033[31m"
-#define NORMAL "\033[0m"
-
-List* init_list(size_t elem_size, size_t init_capacity) {
+List* list_init(size_t elem_size, size_t init_capacity) {
 	if (init_capacity == 0) init_capacity = 1;
 	
 	List* list = malloc(sizeof(List));
@@ -28,13 +24,19 @@ List* init_list(size_t elem_size, size_t init_capacity) {
 
 int list_append(List* list, const void* elem) {
 	if (list->size >= list->capacity) {
+		size_t old_capacity = list->capacity;
 		list->capacity *= 2;
 		void* resize_ptr = realloc(list->ptr, list->capacity * list->elem_size);
 
 		if (!resize_ptr) {
-			printf("[%sERROR%s]: Cannot resize list!", RED, NORMAL);
 			return 1; 
 		}
+		
+		// Zero new memory
+		memset(
+			(char*)resize_ptr + old_capacity * list->elem_size,
+			0,
+			(list->capacity - old_capacity) * list->elem_size);
 		list->ptr = resize_ptr;
 	}
 	void* target = (char*)list->ptr + (list->size++ * list->elem_size);
@@ -42,17 +44,16 @@ int list_append(List* list, const void* elem) {
 	return 0;
 }
 
-// Caller must free
 void* list_get(const List* list, size_t index) {
 	if (index >= list->size) return NULL;
 
-	void* target = malloc(list->elem_size);
-	if (!target) return NULL;
+	return (char*)list->ptr + (index * list->elem_size);
+}
 
-	void* src = (char*)list->ptr + (index * list->elem_size);
-	memcpy(target, src, list->elem_size);
-
-	return target;
+void list_map(const List* list, void* (*fn)(void*)) {
+	for(size_t i = 0; i < list->size; i++) {
+		
+	}
 }
 
 int list_contains(const List* list, const void* elem) {
@@ -77,7 +78,21 @@ int list_contains_cmp(const List* list, const void* elem, comparator cmp) {
 	return 0;
 }
 
-void list_free(List* list) {
+void list_free(List* list, void (*free_fn)(void*)) {
+	if (!list) {
+		return;
+	}
+
+	if (free_fn) {
+		for (size_t i = 0; i < list->size; i++) {
+			void* elem = (char*)list->ptr + i * list->elem_size;
+			if (list->elem_size == sizeof(void*)) {
+				free_fn(*(void**)elem);
+			} else {
+				free_fn(elem);
+			}
+		}
+	}
 	free(list->ptr);
 	free(list);
 }
