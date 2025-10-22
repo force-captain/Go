@@ -1,10 +1,10 @@
-#include "list.h"
+#include "util/list.h"
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
-List* list_init(size_t elem_size, size_t init_capacity) {
+List* list_init(size_t elem_size, size_t init_capacity, comparator cmp) {
 	if (init_capacity == 0) init_capacity = 1;
+    if (elem_size == 0) return NULL;
 	
 	List* list = malloc(sizeof(List));
 	if (!list) return NULL;
@@ -18,6 +18,7 @@ List* list_init(size_t elem_size, size_t init_capacity) {
 	list->elem_size = elem_size;
 	list->capacity = init_capacity;
 	list->size = 0;
+    list->cmp = cmp;
 
 	return list;
 }
@@ -50,32 +51,33 @@ void* list_get(const List* list, size_t index) {
 	return (char*)list->ptr + (index * list->elem_size);
 }
 
-void list_map(const List* list, void* (*fn)(void*)) {
-	for(size_t i = 0; i < list->size; i++) {
-		
-	}
-}
-
-int list_contains(const List* list, const void* elem) {
+ssize_t list_contains(const List* list, const void* elem) {
+    if (!list || !list->ptr || !elem) return -1;
 	size_t i;
 
 	for (i = 0; i < list->size; i++) {
 		void* target = (char*)list->ptr + i * list->elem_size;
-		if (memcmp(target, elem, list->elem_size) == 0) return 1;
+        if (list->cmp && list->cmp(target, elem) == 0) {
+            return (ssize_t)i;
+        }
+        else if (!list->cmp && memcmp(target, elem, list->elem_size) == 0) {
+            return (ssize_t)i;
+        }
 	}
-	return 0;
+	return -1;
 }
 
-int list_contains_cmp(const List* list, const void* elem, comparator cmp) {
-	size_t i;
-
-	for (i = 0; i < list->size; i++) {
-		void* target = (char*)list->ptr + i * list->elem_size;
-		if (cmp(target, elem) == 0) {
-			return 1;
-		}
-	}
-	return 0;
+int list_remove(List *list, const void *elem) {
+    if (!list || !list->ptr || list->size == 0) return 0;
+    ssize_t i = list_contains(list, elem);
+    if (i == -1) return 0;
+    void* current = (char*)list->ptr + i * list->elem_size;
+    void* last = (char*)list->ptr + (list->size - 1) * list->elem_size;
+    if ((size_t)i != list->size-1) {
+        memcpy(current, last, list->elem_size);
+    }
+    list->size--;
+    return 1;
 }
 
 void list_free(List* list, void (*free_fn)(void*)) {

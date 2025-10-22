@@ -1,20 +1,19 @@
 #include <stdio.h>
-#include "list.h"
+#include "util/list.h"
 #include "groups.h"
 #include "board.h"
 #include "states.h"
-
-typedef struct Board {
-	uint8_t size;
-	Tile data[MAX_SIZE][MAX_SIZE];
-	List* groups;
-} Board;
 
 typedef struct Tile {
 	Colour colour;
 	Group* group;
 } Tile;
 
+typedef struct Board {
+	uint8_t size;
+	Tile data[MAX_SIZE][MAX_SIZE];
+	List* groups;
+} Board;
 
 Board* board_init(uint8_t size) {
 	Board* b = malloc(sizeof(Board));
@@ -28,7 +27,7 @@ Board* board_init(uint8_t size) {
 			b->data[i][j] = (Tile){ .colour = NONE, .group = NULL };
 		}
 	}
-	b->groups = list_init(sizeof(Group*), 4);
+	b->groups = list_init(sizeof(Group*), 4, NULL);
 
 	return b;
 }
@@ -39,6 +38,10 @@ Colour board_get_colour(Board* b, Point pt) {
 
 void board_append_group(Board* b, Group* g) {
 	list_append(b->groups, g);
+}
+
+uint8_t board_get_size(Board* b) {
+    return b->size;
 }
 
 Tile* board_get_tile(Board* b, Point pt) {
@@ -59,7 +62,7 @@ void tile_set_group(Tile* t, Group* g) {
 		t->colour = NONE;
 	} else {
 		t->group = g;
-		t->colour = g->colour;
+		t->colour = group_get_colour(g);
 	}
 }
 
@@ -80,7 +83,7 @@ int board_set_tile(Board* b, Colour colour, Point pt) {
 	return MOVE_INVALID;
 }
 
-bool point_is_in_bounds(size_t size, Point pt) {
+bool point_is_in_bounds(uint8_t size, Point pt) {
 	return pt.x < size && pt.y < size;
 }
 
@@ -92,16 +95,17 @@ void get_neighbours(Point* neighbours, Point pt) {
 }
 
 // 0 = Success, 1+ = Failure
-int place_tile(Board* board, Colour colour, Point pt) {
+int board_place_tile(Board* board, Colour colour, Point pt) {
 	if (point_is_in_bounds(board->size, pt) == 0 || board_get_colour(board, pt) != NONE) {
 		return MOVE_INVALID; // Invalid move
 	}
 
-	List* captured_groups = list_init(sizeof(Group*), 2);
+	List* captured_groups = list_init(sizeof(Group*), 2, NULL);
 
 	Point neighbours[4];
 	get_neighbours(neighbours, pt);
-	for(size_t i = 0; i < 4; i++) {
+	for(uint8_t i = 0; i < 4; i++) {
+        // Loop over the placed tile's neighbours.
 		Point n = neighbours[i];
 		if (!point_is_in_bounds(board->size, n)) {
 			continue;
@@ -135,11 +139,13 @@ int place_tile(Board* board, Colour colour, Point pt) {
 		return MOVE_KO; // Ko/Superko rule
 	}
 	list_free(captured_groups, NULL);
-	calculate_board_groups(board);
+    //Group* newGroup = group_init(pt, colour);
+
+	//calculate_board_groups(board, newGroup, pt);
 	return result;
 }
 
 void board_init_groups(Board* b) {
 	list_free(b->groups, group_free_elem);
-	b->groups = list_init(sizeof(Group*), 4);
+	b->groups = list_init(sizeof(Group*), 4, NULL);
 }

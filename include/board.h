@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "colour.h"
+#include "point.h"
 
 #define MAX_SIZE 19
 
@@ -15,22 +17,11 @@ typedef struct Group Group;
 typedef struct Tile Tile;
 
 typedef enum {
-	NONE,
-	BLACK,
-	WHITE
-} Colour;
-
-typedef enum {
 	MOVE_OK,
 	MOVE_INVALID,
 	MOVE_SUICIDE,
 	MOVE_KO
 } MoveResult;
-
-typedef struct {
-	uint8_t x;
-	uint8_t y;
-} Point;
 
 // Interface
 Colour board_get_colour(Board* b, Point pt);
@@ -41,13 +32,15 @@ void board_free(Board* board);
 List* board_get_groups(Board* b);
 void board_init_groups(Board* b);
 int board_add_group(Board* b, Group* g);
-size_t board_get_size(Board* b);
+uint8_t board_get_size(Board* b);
 void board_append_group(Board* b, Group* g);
 
 Colour tile_get_colour(Tile* t);
 Group* tile_get_group(Tile* t);
 
-bool point_is_in_bounds(size_t size, Point pt);
+void tile_set_group(Tile* t, Group* g);
+
+bool point_is_in_bounds(uint8_t size, Point pt);
 
 void board_get_neighbours(Point out[4], Point pt);
 

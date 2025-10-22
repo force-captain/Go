@@ -1,6 +1,6 @@
 #include "groups.h"
 #include "board.h"
-#include "list.h"
+#include "util/list.h"
 
 typedef struct Group {
 	List* points;
@@ -9,13 +9,14 @@ typedef struct Group {
 	bool captured;
 } Group;
 
+
 Group* group_init(Point pt, Colour colour) {
 	Group* g = malloc(sizeof(Group));
-	g->points = list_init(sizeof(Point), 4);
-	g->liberties = list_init(sizeof(Point), 4);
+	g->points = list_init(sizeof(Point), 4, NULL);
+	g->liberties = list_init(sizeof(Point), 4, NULL);
 	g->colour = colour;
 	g->captured = false;
-	list_append(g->points, pt);
+	list_append(g->points, &pt);
 	return g;
 }
 
@@ -38,6 +39,10 @@ int group_get_size(Group* g) {
 	return g->points->size;
 }
 
+Colour group_get_colour(Group* g) {
+    return g->colour;
+}
+
 void group_mark_for_capture(Group* g, bool is_captured) {
 	g->captured = is_captured;
 }
@@ -46,13 +51,16 @@ bool group_is_captured(Group* g) {
 	return g->captured;
 }
 
-void calculate_board_groups(Board* board) {
+
+/*
+
+void calculate_board_groups(Board* board, Group* newGroup, Point pt) {
 	List* groups = board_get_groups(board);
-	for (int i = 0; i < groups->size; i++) {
+	for (size_t i = 0; i < groups->size; i++) {
 		Group* g = *(Group**)list_get(groups, i);
 		if (g->captured) {
 			List* points = g->points;
-			for (int j = 0; j < points->size; j++) {
+			for (size_t j = 0; j < points->size; j++) {
 				Point p = *(Point*)list_get(points, j);
 				tile_set_group(board_get_tile(board, p), NULL);	
 			}
@@ -107,4 +115,4 @@ static void explore_group(int size, bool visited[size][size], bool liberties_vis
 			}
 		}
 	}
-}
+}*/
