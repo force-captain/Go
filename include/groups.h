@@ -18,6 +18,7 @@ int group_get_liberty_count(Group* g);
 int group_get_size(Group* g);
 Colour group_get_colour(Group* g);
 
+void update_board_groups(Board* board, Group* newGroup, Point pt);
 
 void group_mark_for_capture(Group* g, bool is_captured);
 

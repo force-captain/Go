@@ -76,18 +76,14 @@ void board_free(Board* board) {
 
 
 int board_set_tile(Board* b, Colour colour, Point pt) {
-	if (point_is_in_bounds(b->size, pt)) {
+	if (point_in_bounds(b->size, pt)) {
 		b->data[pt.x][pt.y].colour = colour;
 		return MOVE_OK;
 	}
 	return MOVE_INVALID;
 }
 
-bool point_is_in_bounds(uint8_t size, Point pt) {
-	return pt.x < size && pt.y < size;
-}
-
-void get_neighbours(Point* neighbours, Point pt) {
+void board_get_neighbours(Point neighbours[4], Point pt) {
 	neighbours[0] = (Point){ pt.x - 1, pt.y };
 	neighbours[1] = (Point){ pt.x + 1, pt.y };
 	neighbours[2] = (Point){ pt.x, pt.y - 1 };
@@ -96,18 +92,18 @@ void get_neighbours(Point* neighbours, Point pt) {
 
 // 0 = Success, 1+ = Failure
 int board_place_tile(Board* board, Colour colour, Point pt) {
-	if (point_is_in_bounds(board->size, pt) == 0 || board_get_colour(board, pt) != NONE) {
+	if (point_in_bounds(board->size, pt) == 0 || board_get_colour(board, pt) != NONE) {
 		return MOVE_INVALID; // Invalid move
 	}
 
 	List* captured_groups = list_init(sizeof(Group*), 2, NULL);
 
 	Point neighbours[4];
-	get_neighbours(neighbours, pt);
+	board_get_neighbours(neighbours, pt);
 	for(uint8_t i = 0; i < 4; i++) {
         // Loop over the placed tile's neighbours.
 		Point n = neighbours[i];
-		if (!point_is_in_bounds(board->size, n)) {
+		if (!point_in_bounds(board->size, n)) {
 			continue;
 		}
 		Tile* t = board_get_tile(board, n);
@@ -139,13 +135,21 @@ int board_place_tile(Board* board, Colour colour, Point pt) {
 		return MOVE_KO; // Ko/Superko rule
 	}
 	list_free(captured_groups, NULL);
-    //Group* newGroup = group_init(pt, colour);
-
-	//calculate_board_groups(board, newGroup, pt);
+    Group* newGroup = group_init(pt, colour);
+    update_board_groups(board, newGroup, pt);
+	
 	return result;
 }
 
 void board_init_groups(Board* b) {
 	list_free(b->groups, group_free_elem);
 	b->groups = list_init(sizeof(Group*), 4, NULL);
+}
+
+void board_remove_group(Board* b, Group* g) {
+    list_remove(b->groups, g);
+}
+
+List* board_get_groups(Board* b) {
+    return b->groups;
 }

@@ -33,7 +33,9 @@ List* board_get_groups(Board* b);
 void board_init_groups(Board* b);
 int board_add_group(Board* b, Group* g);
 uint8_t board_get_size(Board* b);
+
 void board_append_group(Board* b, Group* g);
+void board_remove_group(Board* b, Group* g);
 
 Colour tile_get_colour(Tile* t);
 Group* tile_get_group(Tile* t);
