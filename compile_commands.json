@@ -1,0 +1,114 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Iinclude",
+      "-c",
+      "-o",
+      "build/states.o",
+      "src/states.c"
+    ],
+    "directory": "/home/catra/Development/C/Go",
+    "file": "/home/catra/Development/C/Go/src/states.c",
+    "output": "/home/catra/Development/C/Go/build/states.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Iinclude",
+      "-c",
+      "-o",
+      "build/util/list.o",
+      "src/util/list.c"
+    ],
+    "directory": "/home/catra/Development/C/Go",
+    "file": "/home/catra/Development/C/Go/src/util/list.c",
+    "output": "/home/catra/Development/C/Go/build/util/list.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Iinclude",
+      "-c",
+      "-o",
+      "build/util/hash.o",
+      "src/util/hash.c"
+    ],
+    "directory": "/home/catra/Development/C/Go",
+    "file": "/home/catra/Development/C/Go/src/util/hash.c",
+    "output": "/home/catra/Development/C/Go/build/util/hash.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Iinclude",
+      "-c",
+      "-o",
+      "build/point.o",
+      "src/point.c"
+    ],
+    "directory": "/home/catra/Development/C/Go",
+    "file": "/home/catra/Development/C/Go/src/point.c",
+    "output": "/home/catra/Development/C/Go/build/point.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Iinclude",
+      "-c",
+      "-o",
+      "build/groups.o",
+      "src/groups.c"
+    ],
+    "directory": "/home/catra/Development/C/Go",
+    "file": "/home/catra/Development/C/Go/src/groups.c",
+    "output": "/home/catra/Development/C/Go/build/groups.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Iinclude",
+      "-c",
+      "-o",
+      "build/program.o",
+      "src/program.c"
+    ],
+    "directory": "/home/catra/Development/C/Go",
+    "file": "/home/catra/Development/C/Go/src/program.c",
+    "output": "/home/catra/Development/C/Go/build/program.o"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-Iinclude",
+      "-c",
+      "-o",
+      "build/board.o",
+      "src/board.c"
+    ],
+    "directory": "/home/catra/Development/C/Go",
+    "file": "/home/catra/Development/C/Go/src/board.c",
+    "output": "/home/catra/Development/C/Go/build/board.o"
+  }
+]

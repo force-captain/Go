@@ -1,12 +1,26 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "program.h"
-#include <string.h>
+#include "board.h"
 
+void take_user_turn(Board* b) {
+    int r;
+    printf("Enter your move\n>");
+    r = (int)board_get_size(b);
+    printf("%d", r);
+}
 
+void draw_board(Board* b) {
+    char* board_text = board_get_image(b);
+    printf("\033[H");
+    printf("%s", board_text);
+    free(board_text);
+}
 
 int main() {
+    printf("\033[2J");
+
     printf("What board size do you want?\n>");
-    
     
     char buf[4];
     int size;
@@ -29,7 +43,9 @@ int main() {
         }
     }
 
-    printf("Got size %d", size);
+    printf("Got size %d\n", size);
+    Board* board = board_init(size);
+    draw_board(board);
 
 	return 0;
 }

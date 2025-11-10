@@ -34,6 +34,8 @@ void board_init_groups(Board* b);
 int board_add_group(Board* b, Group* g);
 uint8_t board_get_size(Board* b);
 
+char* board_get_image(Board* b, int term_c);
+
 void board_append_group(Board* b, Group* g);
 void board_remove_group(Board* b, Group* g);
 

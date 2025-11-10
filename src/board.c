@@ -1,8 +1,16 @@
+#include <stddef.h>
 #include <stdio.h>
+#include <string.h>
 #include "util/list.h"
 #include "groups.h"
 #include "board.h"
 #include "states.h"
+
+#define YELB "\033[48;5;180m"
+#define BLK  "\e[0;30m"
+#define WHT  "\e[0;37m"
+#define NRM  "\e[0;39m"
+#define NRMB "\e[0;49m"
 
 typedef struct Tile {
 	Colour colour;
@@ -153,3 +161,61 @@ void board_remove_group(Board* b, Group* g) {
 List* board_get_groups(Board* b) {
     return b->groups;
 }
+
+char* board_get_image(Board* b, int term_col) {
+    size_t cell_len = 4 + strlen(BLK) + strlen(NRM);
+    size_t max_row_len = b->size * cell_len + 3;
+    size_t rows = (b->size * 2);
+    int padding = (term_col - rows + 1) / 2;
+    if (padding < 0) padding = 0;
+    char* result = malloc(2 * rows * strlen(YELB) + max_row_len * rows + 1);
+    char* p = result;
+    if (!result) return NULL;
+    result[0] = '\0';
+
+    p += sprintf(p, "%*s", padding, " ");
+
+    p += sprintf(p, "   ");
+
+    for(uint8_t c = 0; c < b->size; c++) {
+        p += sprintf(p, " %c  ", 'A' + c);
+    }
+    p += sprintf(p, "\n");
+
+    for(uint8_t r = 1; r < rows; r++) {
+        p += sprintf(p, "%*s", padding, " ");
+        if (r % 2 == 0) {
+            p += sprintf(p, "   "YELB);
+            for (int i = 0; i < b->size - 1; i++) {
+                p += sprintf(p, "---+");
+            }
+            p += sprintf(p, "---");
+        } else {
+            p += sprintf(p, "%2d "YELB, (r+1) / 2);
+            for(uint8_t c = 0; c < b->size; c++) {
+                Colour clr = b->data[r/2][c].colour;
+                if (clr == NONE) {
+                    p += sprintf(p, "   ");
+                } else {
+                    if (clr == BLACK) p += sprintf(p, " "BLK"O"NRM" ");
+                    else p += sprintf(p, " "WHT"O"NRM" ");
+                }
+                if (c < b->size - 1) {
+                    p += sprintf(p, "|");
+                }
+            }
+        }
+        p += sprintf(p, NRMB"\n");
+    }
+    p += sprintf(p, NRMB);
+    return result;
+}
+
+/*
+ * YELB BLK O NRM | BLK O NRM | BLK O NRM | BLK O NRM
+ * ---+---+---+
+ * BLK O NRM |
+ * 
+ * NRMB
+ * 
+*/
