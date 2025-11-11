@@ -8,7 +8,6 @@
 
 typedef struct Board Board;
 
-extern uint64_t get_hash(Board* board);
-void init_states(void);
+uint64_t get_hash(Board* board);
 
 #endif

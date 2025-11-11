@@ -67,6 +67,19 @@ ssize_t list_contains(const List* list, const void* elem) {
     return -1;
 }
 
+void list_remove_at(List* list, size_t idx) {
+    if (!list || idx >= list->size) return;
+
+    char* base = (char*)list->ptr;
+    size_t bytes_after = (list->size - idx - 1) * list->elem_size;
+    if (bytes_after > 0) {
+        memmove(base + idx * list->elem_size,
+                base + (idx + 1) * list->elem_size,
+                bytes_after);
+    }
+    list->size--;
+}
+
 int list_remove(List *list, const void *elem) {
     if (!list || !list->ptr || list->size == 0) return 0;
     ssize_t i = list_contains(list, elem);
@@ -108,5 +121,4 @@ void list_merge(List* main, List* extra) {
             list_append(main, elem);
         }
     }
-    list_free(extra, NULL);
 }

@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include "util/hash.h"
@@ -7,7 +8,9 @@
 
 uint64_t state = 88172345361325652ULL;
 
+bool init = false;
 uint64_t zobrist_table[MAX_SIZE][MAX_SIZE][3];
+void init_table();
 
 uint64_t xorshift64() {
 	uint64_t x = state;
@@ -27,6 +30,11 @@ int get_state_colour(Board* board, Point pt) {
 }
 
 uint64_t get_hash(Board* board) {
+    if (!init) {
+        init = true;
+        init_table();
+    }
+
 	uint64_t result = 0;
 	size_t size = board_get_size(board);
 	for (size_t i = 0; i < size; i++) {
@@ -38,7 +46,7 @@ uint64_t get_hash(Board* board) {
 }
 
 
-void init_states() {
+void init_table() {
 	for(int i = 0; i < MAX_SIZE; i++) {
 		for(int j = 0; j < MAX_SIZE; j++) {
 			for (int k = 0; k < 3; k++) {

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "program.h"
 #include "board.h"
+#include "display.h"
 
 void take_user_turn(Board* b) {
     int r;
@@ -10,12 +11,6 @@ void take_user_turn(Board* b) {
     printf("%d", r);
 }
 
-void draw_board(Board* b) {
-    char* board_text = board_get_image(b);
-    printf("\033[H");
-    printf("%s", board_text);
-    free(board_text);
-}
 
 int main() {
     printf("\033[2J");
@@ -45,7 +40,7 @@ int main() {
 
     printf("Got size %d\n", size);
     Board* board = board_init(size);
-    draw_board(board);
-
+    display_interactive(board);
+    free(board);
 	return 0;
 }
