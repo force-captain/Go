@@ -1,5 +1,6 @@
 #include "groups.h"
 #include "board.h"
+#include "point.h"
 #include "util/list.h"
 
 typedef struct Group {
@@ -81,6 +82,32 @@ void merge_groups(Board* b, Group* main, Group* extra) {
     group_free(extra);
 }
 
+void clear_group(Board* board, Group* captured) {
+    List* points = captured->points;
+    if (!points) return;
+    
+    for (size_t i = 0; i < points->size; i++) {
+        Point p = *(Point*)list_get(points, i);
+        tile_set_group(board_get_tile(board, p), NULL);
+
+        Point neighbours[4];
+        board_get_neighbours(neighbours, p);
+        for (int j = 0; j < 4; j++) {
+            Point n = neighbours[j];
+            if (!point_in_bounds(board_get_size(board), n)) continue;
+
+            Group* adj = tile_get_group(board_get_tile(board, n));
+            if (adj && group_get_colour(adj) != captured->colour) {
+                list_append(adj->liberties, &p);
+            }
+        }
+    }
+
+    List* groups = board_get_groups(board);
+    list_remove(groups, captured);
+    group_free(captured);
+}
+
 
 void update_board_groups(Board* board, Group* newGroup, Point pt) {
     List* groups = board_get_groups(board);
@@ -91,14 +118,7 @@ void update_board_groups(Board* board, Group* newGroup, Point pt) {
         
         if (!g) continue;
         if (!g->captured) continue;
-
-        List* points = g->points;
-        if (!points) continue;
-
-        for (size_t j = 0; j < points->size; j++) {
-            Point p = *(Point*)list_get(points, j);
-            tile_set_group(board_get_tile(board, p), NULL);
-        }
+        clear_group(board, g);
     }
 
     Point neighbours[4];
