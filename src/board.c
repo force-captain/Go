@@ -127,6 +127,8 @@ int board_place_tile(Board* board, Colour colour, Point pt) {
         }
         else {
             if (group_get_liberty_count(g) == 1) {
+                tile_set_group(t, NULL);
+                group_free(newGroup);
                 list_free(captured_groups, NULL);
                 return MOVE_SUICIDE; // Suicide rule
             }
@@ -159,5 +161,6 @@ void board_remove_group(Board* b, Group* g) {
 }
 
 List* board_get_groups(Board* b) {
+    printf("groups=%p\nsize=%zu\ncapacity=%zu\n", b->groups, b->groups->size, b->groups->capacity);
     return b->groups;
 }

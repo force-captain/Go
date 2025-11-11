@@ -1,8 +1,8 @@
 # Compiler
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -Iinclude -g
+CFLAGS = -Wall -Wextra -Werror -Iinclude -g -fsanitize=address
 
-LDFLAGS = -lncurses
+LDFLAGS = -lncurses -fsanitize=address
 
 SRC_DIR := src
 BUILD_DIR := build

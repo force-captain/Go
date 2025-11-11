@@ -41,6 +41,6 @@ int main() {
     printf("Got size %d\n", size);
     Board* board = board_init(size);
     display_interactive(board);
-    free(board);
+    board_free(board);
 	return 0;
 }

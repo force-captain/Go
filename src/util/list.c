@@ -47,7 +47,6 @@ int list_append(List* list, const void* elem) {
 
 void* list_get(const List* list, size_t index) {
     if (index >= list->size) return NULL;
-
     return (char*)list->ptr + (index * list->elem_size);
 }
 

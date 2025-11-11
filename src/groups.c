@@ -2,6 +2,7 @@
 #include "board.h"
 #include "point.h"
 #include "util/list.h"
+#include <stdio.h>
 
 typedef struct Group {
 	List* points;
@@ -10,11 +11,17 @@ typedef struct Group {
 	bool captured;
 } Group;
 
+int point_cmp(const void* a, const void* b) {
+    Point* apt = (Point*)a;
+    Point* bpt = (Point*)b;
+    if (apt->x == bpt->x && apt->y == bpt->y) return 0;
+    else return 1;
+}
 
 Group* group_init(Point pt, Colour colour) {
 	Group* g = malloc(sizeof(Group));
-	g->points = list_init(sizeof(Point), 4, NULL);
-	g->liberties = list_init(sizeof(Point), 4, NULL);
+	g->points = list_init(sizeof(Point), 4, point_cmp);
+	g->liberties = list_init(sizeof(Point), 4, point_cmp);
 	g->colour = colour;
 	g->captured = false;
 	list_append(g->points, &pt);
@@ -98,27 +105,39 @@ void clear_group(Board* board, Group* captured) {
 
             Group* adj = tile_get_group(board_get_tile(board, n));
             if (adj && group_get_colour(adj) != captured->colour) {
-                list_append(adj->liberties, &p);
+                if (!list_contains(adj->liberties, &p))
+                    list_append(adj->liberties, &p);
             }
         }
     }
 
     List* groups = board_get_groups(board);
-    list_remove(groups, captured);
+    list_remove(groups, &captured);
     group_free(captured);
 }
 
 
 void update_board_groups(Board* board, Group* newGroup, Point pt) {
     List* groups = board_get_groups(board);
-
     // clear captured groups
+    Group** to_clear;
+    if (groups->size > 0) {
+        to_clear = malloc(groups->size * sizeof(Group*));
+        if (!to_clear) { perror("malloc"); abort(); }
+    }
+
+    int clear_amt = 0;
+
     for (size_t i = 0; i < groups->size; i++) {
         Group* g = *(Group**)list_get(groups, i);
         
         if (!g) continue;
         if (!g->captured) continue;
-        clear_group(board, g);
+        to_clear[clear_amt++] = g;
+    }
+
+    for (int i = 0; i < clear_amt; i++) {
+        clear_group(board, to_clear[i]);
     }
 
     Point neighbours[4];
