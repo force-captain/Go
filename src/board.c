@@ -164,6 +164,7 @@ int board_place_tile(Board* board, Colour colour, Point pt) {
         return MOVE_KO;
     }
 
+    // commit changes
     update_board_groups(board, newGroup, pt);
 
     list_free(captured_groups, NULL);

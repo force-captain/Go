@@ -11,12 +11,6 @@ typedef struct Group {
 	bool captured;
 } Group;
 
-int point_cmp(const void* a, const void* b) {
-    Point* apt = (Point*)a;
-    Point* bpt = (Point*)b;
-    if (apt->x == bpt->x && apt->y == bpt->y) return 0;
-    else return 1;
-}
 
 Group* group_init(Point pt, Colour colour) {
 	Group* g = malloc(sizeof(Group));
@@ -144,9 +138,11 @@ void clear_group(Board* board, Group* captured) {
             if (!point_in_bounds(board_get_size(board), n)) continue;
 
             Group* adj = tile_get_group(board_get_tile(board, n));
-            if (adj && adj != captured) {
-                list_append(neighbour_groups, adj);
-            }
+            if (!adj) continue;
+            if (adj == captured) continue;
+            if (list_contains(neighbour_groups, &adj) != -1) continue;
+
+            list_append(neighbour_groups, adj);
         }
     }
 
