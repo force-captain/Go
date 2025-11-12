@@ -149,6 +149,7 @@ int board_place_tile(Board* board, Colour colour, Point pt) {
     
     // check for suicide
     group_update_liberties(board, newGroup);
+    group_update_neighbours(board, pt);
     if (group_get_liberty_count(newGroup) == 0) {
         bool anyCaptured = false;
         List* groups = board_get_groups(board);
@@ -199,6 +200,5 @@ void board_remove_group(Board* b, Group* g) {
 }
 
 List* board_get_groups(Board* b) {
-    printf("groups=%p\nsize=%zu\ncapacity=%zu\n", b->groups, b->groups->size, b->groups->capacity);
     return b->groups;
 }

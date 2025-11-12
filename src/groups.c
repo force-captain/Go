@@ -70,7 +70,7 @@ void group_update_liberties(Board* b, Group* g) {
         Point neighbours[4];
         board_get_neighbours(neighbours, pt);
         for(int j = 0; j < 4; j++) {
-            Point n = neighbours[i];
+            Point n = neighbours[j];
             if (!point_in_bounds(board_get_size(b), n)) continue;
 
             Tile* t = board_get_tile(b, n);
@@ -80,6 +80,20 @@ void group_update_liberties(Board* b, Group* g) {
                 }
             }
         }
+    }
+}
+
+void group_update_neighbours(Board* b, Point pt) {
+    Point neighbours[4];
+    board_get_neighbours(neighbours, pt);
+
+    for (int i = 0; i < 4; i++) {
+        Point n = neighbours[i];
+        if (!point_in_bounds(board_get_size(b), n)) continue;
+
+        Tile* t = board_get_tile(b, n);
+        if (tile_get_group(t))
+            group_update_liberties(b, tile_get_group(t));
     }
 }
 
@@ -116,6 +130,8 @@ void merge_groups(Board* b, Group* main, Group* extra) {
 void clear_group(Board* board, Group* captured) {
     List* points = captured->points;
     if (!points) return;
+
+    List* neighbour_groups = list_init(sizeof(Group*), 8, NULL);
     
     for (size_t i = 0; i < points->size; i++) {
         Point p = *(Point*)list_get(points, i);
@@ -128,12 +144,17 @@ void clear_group(Board* board, Group* captured) {
             if (!point_in_bounds(board_get_size(board), n)) continue;
 
             Group* adj = tile_get_group(board_get_tile(board, n));
-            if (adj && group_get_colour(adj) != captured->colour) {
-                if (!list_contains(adj->liberties, &p))
-                    list_append(adj->liberties, &p);
+            if (adj && adj != captured) {
+                list_append(neighbour_groups, adj);
             }
         }
     }
+
+    for(size_t i = 0; i < neighbour_groups->size; i++) {
+        group_update_liberties(board, list_get(neighbour_groups, i));
+    }
+
+    list_free(neighbour_groups, NULL);
 
     List* groups = board_get_groups(board);
     list_remove(groups, &captured);

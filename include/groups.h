@@ -22,6 +22,8 @@ Colour group_get_colour(Group* g);
 void update_board_groups(Board* board, Group* newGroup, Point pt);
 void group_update_liberties(Board* board, Group* group);
 
+void group_update_neighbours(Board* board, Point pt);
+
 void group_mark_for_capture(Group* g, bool is_captured);
 
 bool group_is_captured(Group* g);
