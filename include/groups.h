@@ -17,6 +17,7 @@ void calculate_board_groups(Board* board, Group* newGroup, Point pt);
 int group_get_liberty_count(Group* g);
 int group_get_size(Group* g);
 void group_remove_liberty(Group* g, Point* pt);
+void merge_groups(Board* b, Group* main, Group* extra);
 Colour group_get_colour(Group* g);
 
 void update_board_groups(Board* board, Group* newGroup, Point pt);

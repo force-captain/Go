@@ -176,6 +176,7 @@ void update_board_groups(Board* board, Group* newGroup, Point pt) {
     Point neighbours[4];
     board_get_neighbours(neighbours, pt);
     
+    // merge neighbours
     for(size_t i = 0; i < 4; i++) {
         Point n = neighbours[i];
         if (!point_in_bounds(board_get_size(board), n)) continue;
@@ -187,5 +188,7 @@ void update_board_groups(Board* board, Group* newGroup, Point pt) {
         merge_groups(board, newGroup, g);
     }
 
+    // update liberties
     group_update_liberties(board, newGroup);
+    group_update_neighbours(board, pt);
 }

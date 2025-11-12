@@ -113,81 +113,61 @@ int board_place_tile(Board* board, Colour colour, Point pt) {
     Tile* t = board_get_tile(board, pt);
     Group* newGroup = group_init(pt, colour);
     tile_set_group(t, newGroup);
-
     board_add_group(board, newGroup);
 
+    // get neighbours
 	Point neighbours[4];
 	board_get_neighbours(neighbours, pt);
 
-    // update enemy liberties
-	for(int i = 0; i < 4; i++) {
-		Point n = neighbours[i];
-		if (!point_in_bounds(board->size, n)) continue;
+    List* captured_groups = list_init(sizeof(Group*), 4, NULL);
 
-		Tile* n_t = board_get_tile(board, n);
-        if (!n_t || n_t->colour == NONE) continue;
-
-        Group* g = n_t->group;
-        if (group_get_colour(g) != colour) {
-            group_remove_liberty(g, &pt);
-        }
-    }
-
-    // mark capture
+    // remove liberties and mark captures
     for (int i = 0; i < 4; i++) {
         Point n = neighbours[i];
         if (!point_in_bounds(board->size, n)) continue;
 
         Tile* nt = board_get_tile(board, n);
-        if (!nt || nt->colour == NONE) continue;
-
         Group* g = nt->group;
-        if (g && group_get_colour(g) != colour && group_get_liberty_count(g) == 0) {
-            group_mark_for_capture(g, true);
+        if (!g || group_get_colour(g) == NONE) continue;
+
+        if (group_get_colour(g) != colour) {
+            group_remove_liberty(g, &pt);
+
+            if (group_get_liberty_count(g) == 0) {
+                group_mark_for_capture(g, true);
+                list_append(captured_groups, g);
+            }
         }
     }
-    
-    // check for suicide
+
+    // update liberties
     group_update_liberties(board, newGroup);
-    group_update_neighbours(board, pt);
-    if (group_get_liberty_count(newGroup) == 0) {
-        bool anyCaptured = false;
-        List* groups = board_get_groups(board);
 
-        for (size_t i = 0; i < groups->size; i++) {
-            Group* g = *(Group**)list_get(groups, i);
-            if (g && group_is_captured(g)) {
-                anyCaptured = true;
-                break;
-            }
-        }
-
-        if (!anyCaptured) {
-            tile_set_group(t, NULL);
-            group_free(newGroup);
-            return MOVE_SUICIDE;
-        }
+    // check suicide
+    if (group_get_liberty_count(newGroup) == 0 && captured_groups->size == 0) {
+        tile_set_group(t, NULL);
+        group_free(newGroup);
+        list_free(captured_groups, NULL);
+        return MOVE_SUICIDE;
     }
 
-	// check ko
+    // check ko
     if (check_ko(board)) {
-        List* groups = board_get_groups(board);
-
-        for(size_t i = 0; i < groups->size; i++) {
-            Group* g = *(Group**)list_get(groups, i);
-            if (g && group_is_captured(g)) {
-                group_mark_for_capture(g, false);
-            }
+        for (size_t i = 0; i < captured_groups->size; i++) {
+            Group* g = *(Group**)list_get(captured_groups, i);
+            group_mark_for_capture(g, false);
         }
 
         tile_set_group(t, NULL);
         group_free(newGroup);
-		return MOVE_KO;
+        list_free(captured_groups, NULL);
+        return MOVE_KO;
     }
 
-    // update groups and indicate success
     update_board_groups(board, newGroup, pt);
-	return MOVE_OK;
+
+    list_free(captured_groups, NULL);
+    return MOVE_OK;
 }
 
 void board_init_groups(Board* b) {
