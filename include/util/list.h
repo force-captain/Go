@@ -23,6 +23,7 @@ ssize_t list_contains(const List* list, const void* elem);
 void list_free(List* list, void (*free_fn)(void*));
 int list_remove(List* list, const void* elem);
 void list_remove_at(List* list, size_t idx);
+void list_clear(List* list);
 
 void list_merge(List* main, List* extra);
 

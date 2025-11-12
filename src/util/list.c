@@ -121,3 +121,9 @@ void list_merge(List* main, List* extra) {
         }
     }
 }
+
+void list_clear(List* list) {
+    for(ssize_t i = (ssize_t)list->size - 1; i >= 0; i--) {
+        list_remove_at(list, i);
+    }
+}

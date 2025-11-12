@@ -12,6 +12,7 @@
 #define CP_BOARD  4
 #define CP_SELECT 5
 
+
 static void init_ncurses_colours();
 static void init_ncurses();
 static void end_ncurses();
@@ -38,7 +39,7 @@ static void init_ncurses_colours() {
     init_pair(CP_LABELS, COLOR_WHITE, -1);
     init_pair(CP_BLACK,  COLOR_BLACK, COLOR_YELLOW);
     init_pair(CP_WHITE,  COLOR_WHITE, COLOR_YELLOW);
-    init_pair(CP_BOARD,  COLOR_WHITE, COLOR_YELLOW); // Remember to use A_DIM
+    init_pair(CP_BOARD,  COLOR_BLACK, COLOR_YELLOW); // Remember to use A_DIM
     init_pair(CP_SELECT, COLOR_BLACK, COLOR_GREEN);
 }
 

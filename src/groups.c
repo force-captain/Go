@@ -51,12 +51,36 @@ Colour group_get_colour(Group* g) {
     return g->colour;
 }
 
+void group_remove_liberty(Group* g, Point* pt) {
+    list_remove(g->liberties, pt);
+}
+
 void group_mark_for_capture(Group* g, bool is_captured) {
 	g->captured = is_captured;
 }
 
 bool group_is_captured(Group* g) {
 	return g->captured;
+}
+
+void group_update_liberties(Board* b, Group* g) {
+    list_clear(g->liberties);
+    for(size_t i = 0; i < g->points->size; i++) {
+        Point pt = *(Point*)list_get(g->points, i);
+        Point neighbours[4];
+        board_get_neighbours(neighbours, pt);
+        for(int j = 0; j < 4; j++) {
+            Point n = neighbours[i];
+            if (!point_in_bounds(board_get_size(b), n)) continue;
+
+            Tile* t = board_get_tile(b, n);
+            if (tile_get_colour(t) == NONE) {
+                if (list_contains(g->liberties, &n) == -1) {
+                    list_append(g->liberties, &n);
+                }
+            }
+        }
+    }
 }
 
 void merge_groups(Board* b, Group* main, Group* extra) {
@@ -119,31 +143,17 @@ void clear_group(Board* board, Group* captured) {
 
 void update_board_groups(Board* board, Group* newGroup, Point pt) {
     List* groups = board_get_groups(board);
+
     // clear captured groups
-    Group** to_clear;
-    if (groups->size > 0) {
-        to_clear = malloc(groups->size * sizeof(Group*));
-        if (!to_clear) { perror("malloc"); abort(); }
-    }
-
-    int clear_amt = 0;
-
-    for (size_t i = 0; i < groups->size; i++) {
+    for(size_t i = 0; i < groups->size; i++) {
         Group* g = *(Group**)list_get(groups, i);
-        
-        if (!g) continue;
-        if (!g->captured) continue;
-        to_clear[clear_amt++] = g;
-    }
-
-    for (int i = 0; i < clear_amt; i++) {
-        clear_group(board, to_clear[i]);
+        if (g && g->captured) {
+            clear_group(board, g);
+        }
     }
 
     Point neighbours[4];
     board_get_neighbours(neighbours, pt);
-    Group* to_merge[4];
-    int safe_count = 0;
     
     for(size_t i = 0; i < 4; i++) {
         Point n = neighbours[i];
@@ -151,27 +161,10 @@ void update_board_groups(Board* board, Group* newGroup, Point pt) {
 
         Group* g = tile_get_group(board_get_tile(board, n));
         if (!g || g == newGroup) continue;
-        if (group_get_colour(g) != group_get_colour(newGroup)) {
-            list_remove(g->liberties, &n);
-            continue;
-        }
+        if (group_get_colour(g) != group_get_colour(newGroup)) continue;
 
-        int duplicate = 0;
-        for(int j = 0; j < safe_count; j++) {
-            if (to_merge[j] == g) {
-                duplicate = 1;
-                break;
-            }
-        }
-
-        if (duplicate == 0) {
-            to_merge[safe_count++] = g;
-        }
-
+        merge_groups(board, newGroup, g);
     }
 
-    for(int i = 0; i < safe_count; i++) {
-        merge_groups(board, newGroup, to_merge[i]);
-    }
-
+    group_update_liberties(board, newGroup);
 }
